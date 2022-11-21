@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:habit_tracker_flutter/models/task.dart';
 import 'package:habit_tracker_flutter/persistence/hive_data_store.dart';
+import 'package:habit_tracker_flutter/ui/home/tasks_grid.dart';
 import 'package:habit_tracker_flutter/ui/home/tasks_grid_page.dart';
 import 'package:habit_tracker_flutter/ui/sliding_panel/sliding_panel_animator.dart';
 import 'package:habit_tracker_flutter/ui/theming/app_theme_manager.dart';
@@ -18,6 +19,9 @@ class HomePage extends ConsumerWidget {
       GlobalKey<SlidingPanelAnimatorState>();
   final _backSlidingPanelRightAnimatorKey =
       GlobalKey<SlidingPanelAnimatorState>();
+  final _frontGridKey = GlobalKey<TasksGridState>();
+  final _backGridKey = GlobalKey<TasksGridState>();
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final dataStore = ref.watch(dataStoreProvider);
@@ -40,6 +44,7 @@ class HomePage extends ConsumerWidget {
           onVariantIndexSelected: (variantIndex) => ref
               .read(frontThemeManagerProvider.notifier)
               .updateVariantIndex(variantIndex),
+          gridkey: _frontGridKey,
         ),
       ),
       backBuilder: (_) => ValueListenableBuilder(
@@ -59,6 +64,7 @@ class HomePage extends ConsumerWidget {
           onVariantIndexSelected: (variantIndex) => ref
               .read(backThemeManagerProvider.notifier)
               .updateVariantIndex(variantIndex),
+          gridkey: _backGridKey,
         ),
       ),
     );

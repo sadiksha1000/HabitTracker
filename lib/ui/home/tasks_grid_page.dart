@@ -19,11 +19,13 @@ class TasksGridPage extends StatelessWidget {
     required this.leftAnimatorKey,
     required this.rightAnimatorKey,
     required this.themeSettings,
+    required this.gridkey,
     this.onColorIndexSelected,
     this.onVariantIndexSelected,
   }) : super(key: key);
   final GlobalKey<SlidingPanelAnimatorState> leftAnimatorKey;
   final GlobalKey<SlidingPanelAnimatorState> rightAnimatorKey;
+  final GlobalKey<TasksGridState> gridkey;
   final List<Task> tasks;
   final VoidCallback? onFlip;
   final AppThemeSettings themeSettings;
@@ -33,11 +35,13 @@ class TasksGridPage extends StatelessWidget {
   void _enterEditMode() {
     leftAnimatorKey.currentState?.slideIn();
     rightAnimatorKey.currentState?.slideIn();
+    gridkey.currentState?.enterEditMode();
   }
 
   void _exitEditMode() {
     leftAnimatorKey.currentState?.slideOut();
     rightAnimatorKey.currentState?.slideOut();
+    gridkey.currentState?.exitEditMode();
   }
 
   @override
@@ -54,6 +58,7 @@ class TasksGridPage extends StatelessWidget {
               child: Stack(
                 children: [
                   TasksGridContents(
+                    gridKey: gridkey,
                     tasks: tasks,
                     onFlip: onFlip,
                     onEnterEditMode: _enterEditMode,
@@ -101,13 +106,17 @@ class TasksGridPage extends StatelessWidget {
 class TasksGridContents extends StatelessWidget {
   const TasksGridContents({
     Key? key,
+    this.gridKey,
     required this.tasks,
     this.onFlip,
     this.onEnterEditMode,
+    this.onExitEditmode,
   }) : super(key: key);
   final List<Task> tasks;
   final VoidCallback? onFlip;
   final VoidCallback? onEnterEditMode;
+  final VoidCallback? onExitEditmode;
+  final Key? gridKey;
 
   @override
   Widget build(BuildContext context) {
@@ -119,7 +128,9 @@ class TasksGridContents extends StatelessWidget {
             padding:
                 const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
             child: TasksGrid(
+              key: gridKey,
               tasks: tasks,
+              onEditTask: onExitEditmode,
             ),
           ),
         ),

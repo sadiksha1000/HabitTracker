@@ -2,12 +2,44 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:habit_tracker_flutter/models/task.dart';
-import 'package:habit_tracker_flutter/ui/task/task_with_name.dart';
+import 'package:habit_tracker_flutter/ui/animations/animation_controller_state.dart';
+import 'package:habit_tracker_flutter/ui/animations/opacity_animated_widget.dart';
+import 'package:habit_tracker_flutter/ui/animations/staggered_scale_animated_widget.dart';
+import 'package:habit_tracker_flutter/ui/common_widgets/edit_task_button.dart';
+import 'package:habit_tracker_flutter/ui/task/add_task_item.dart';
 import 'package:habit_tracker_flutter/ui/task/task_with_name_loader.dart';
 
-class TasksGrid extends StatelessWidget {
-  const TasksGrid({Key? key, required this.tasks}) : super(key: key);
+class TasksGrid extends StatefulWidget {
+  const TasksGrid({
+    Key? key,
+    required this.tasks,
+    required this.onEditTask,
+  }) : super(key: key);
   final List<Task> tasks;
+  final VoidCallback? onEditTask;
+
+  @override
+  TasksGridState createState() => TasksGridState(Duration(milliseconds: 300));
+}
+
+class TasksGridState extends AnimationControllerState<TasksGrid> {
+  TasksGridState(Duration duration) : super(duration);
+
+  bool _isEditing = false;
+
+  void enterEditMode() {
+    animationController.forward();
+    setState(() {
+      _isEditing = true;
+    });
+  }
+
+  void exitEditMode() {
+    animationController.reverse();
+    setState(() {
+      _isEditing = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +52,7 @@ class TasksGrid extends StatelessWidget {
         // Use max(x, 0.1) to prevent layout error when keyword is visible in modal page
         final mainAxisSpacing =
             max((constraints.maxHeight - taskHeight * 3) / 2.0, 0.1);
-        final tasksLength = tasks.length;
+        final tasksLength = min(6, widget.tasks.length + 1);
         return GridView.builder(
           physics: NeverScrollableScrollPhysics(),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -30,9 +62,23 @@ class TasksGrid extends StatelessWidget {
             childAspectRatio: aspectRatio,
           ),
           itemBuilder: (context, index) {
-            final task = tasks[index];
+            if (index == widget.tasks.length) {
+              return CustomFadeTransition(
+                animation: animationController,
+                child: AddTaskItem(onCompleted: _isEditing ? () {} : null),
+              );
+            }
+            final task = widget.tasks[index];
             return TaskWithNameLoader(
               task: task,
+              isEditing: _isEditing,
+              editTaskButtonBuilder: (_) => StaggeredScaleTransition(
+                animation: animationController,
+                index: index,
+                child: EditTaskButton(
+                  onPressed: (() => print("Edit item")),
+                ),
+              ),
             );
           },
           itemCount: tasksLength,
